@@ -1,0 +1,19 @@
+{
+  "apps": [
+    {
+      "name": "photos-server",
+      "script": "index.js",
+      "watch": false,
+      "env": {
+        "NODE_ENV": "production"
+      }
+    },
+    {
+      "name": "NgrokTunnel",
+      "script": "ngrok",
+      "args": "http --domain=enabled-griffon-known.ngrok-free.app 3001",
+      "exec_mode": "fork",
+      "watch": false
+    }
+  ]
+}

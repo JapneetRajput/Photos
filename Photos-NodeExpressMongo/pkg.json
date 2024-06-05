@@ -1,0 +1,4 @@
+{
+  "scripts": ["index.js", "ecosystem.config.json"],
+  "assets": ["uploads/**/*"]
+}
