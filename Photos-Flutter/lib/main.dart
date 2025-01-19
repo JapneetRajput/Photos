@@ -49,7 +49,7 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage>
     with AutomaticKeepAliveClientMixin {
   final BehaviorSubject<List<Medium?>> _mediaSubject =
-  BehaviorSubject<List<Medium?>>();
+      BehaviorSubject<List<Medium?>>();
   final Map<String, Uint8List> _thumbnails = {};
   final Set<Medium> _selectedMedia = {};
   List<String> _uploadedPhotos = [];
@@ -91,7 +91,7 @@ class _HomePageState extends State<HomePage>
         statuses[Permission.manageExternalStorage]!.isPermanentlyDenied) {
       setState(() {
         _errorMessage =
-        'Necessary permissions permanently denied. Please enable them from settings.';
+            'Necessary permissions permanently denied. Please enable them from settings.';
         _isLoading = false;
       });
       openAppSettings();
@@ -128,7 +128,7 @@ class _HomePageState extends State<HomePage>
   Future<void> _fetchMedia() async {
     try {
       List<Album> albums =
-      await PhotoGallery.listAlbums(mediumType: MediumType.image);
+          await PhotoGallery.listAlbums(mediumType: MediumType.image);
       if (albums.isEmpty) {
         setState(() {
           _errorMessage = 'No albums found';
@@ -206,8 +206,8 @@ class _HomePageState extends State<HomePage>
   void _selectAll() {
     setState(() {
       _selectedMedia.clear();
-      _selectedMedia.addAll(
-          _mediaList.where((medium) => medium != null).cast<Medium>());
+      _selectedMedia
+          .addAll(_mediaList.where((medium) => medium != null).cast<Medium>());
       _selectionMode = true;
     });
   }
@@ -220,6 +220,37 @@ class _HomePageState extends State<HomePage>
   }
 
   Future<void> _uploadPhotos() async {
+    TextEditingController folderNameController = TextEditingController();
+
+// Show dialog box for folder name input
+    String? folderName = await showDialog<String>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Enter Folder Name'),
+          content: TextField(
+            controller: folderNameController,
+            decoration: InputDecoration(hintText: 'Folder Name'),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context)
+                    .pop(); // Close dialog without returning data
+              },
+              child: Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(folderNameController.text.trim());
+              },
+              child: Text('Submit'),
+            ),
+          ],
+        );
+      },
+    );
+
     setState(() {
       _isUploading = true;
       _uploadStatus = 'Uploading 0/${_selectedMedia.length} photos...';
@@ -255,11 +286,13 @@ class _HomePageState extends State<HomePage>
           });
         }
 
-        var request = http.MultipartRequest('POST',
+        var request = http.MultipartRequest(
+            'POST',
             Uri.parse(
                 'https://enabled-griffon-known.ngrok-free.app/upload-multiple'));
         request.headers['Authorization'] = 'arjunrajput';
         request.files.addAll(files);
+        request.fields['folderName'] = folderName!;
 
         var response = await request.send();
 
@@ -267,8 +300,7 @@ class _HomePageState extends State<HomePage>
           setState(() {
             _uploadStatus = 'Failed to upload photos.';
           });
-          ScaffoldMessenger.of(context)
-              .showSnackBar(
+          ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(content: Text('Failed to upload photos.')));
           return;
         }
@@ -303,7 +335,7 @@ class _HomePageState extends State<HomePage>
     int totalSize = 0;
     for (String uploadedPhoto in _uploadedPhotos) {
       Medium? medium = _mediaList.firstWhere(
-            (medium) => medium?.filename == uploadedPhoto,
+        (medium) => medium?.filename == uploadedPhoto,
         orElse: () => null,
       );
       if (medium != null) {
@@ -376,7 +408,7 @@ class _HomePageState extends State<HomePage>
 
       for (String uploadedPhoto in _uploadedPhotos) {
         Medium? medium = _mediaList.firstWhere(
-              (medium) => medium?.filename == uploadedPhoto,
+          (medium) => medium?.filename == uploadedPhoto,
           orElse: () => null,
         );
 
@@ -429,15 +461,15 @@ class _HomePageState extends State<HomePage>
         actions: [
           _selectionMode
               ? IconButton(
-            icon: Icon(Icons.select_all),
-            onPressed: _selectAll,
-          )
+                  icon: Icon(Icons.select_all),
+                  onPressed: _selectAll,
+                )
               : Container(),
           _selectionMode
               ? IconButton(
-            icon: Icon(Icons.cancel),
-            onPressed: _cancelSelection,
-          )
+                  icon: Icon(Icons.cancel),
+                  onPressed: _cancelSelection,
+                )
               : Container(),
           IconButton(
             icon: Icon(Icons.upload),
@@ -464,89 +496,86 @@ class _HomePageState extends State<HomePage>
         children: [
           _isLoading
               ? Center(
-            child: CircularProgressIndicator(
-              color: Colors.white,
-            ),
-          )
+                  child: CircularProgressIndicator(
+                    color: Colors.white,
+                  ),
+                )
               : StreamBuilder<List<Medium?>>(
-            stream: _mediaSubject.stream,
-            builder: (context, snapshot) {
-              if (snapshot.hasError) {
-                return Center(
-                  child: Text('Error: ${snapshot.error}',
-                      style: TextStyle(color: Colors.white)),
-                );
-              }
+                  stream: _mediaSubject.stream,
+                  builder: (context, snapshot) {
+                    if (snapshot.hasError) {
+                      return Center(
+                        child: Text('Error: ${snapshot.error}',
+                            style: TextStyle(color: Colors.white)),
+                      );
+                    }
 
-              if (!snapshot.hasData) {
-                return Center(
-                  child: CircularProgressIndicator(color: Colors.white),
-                );
-              }
+                    if (!snapshot.hasData) {
+                      return Center(
+                        child: CircularProgressIndicator(color: Colors.white),
+                      );
+                    }
 
-              List<Medium?> mediaList = snapshot.data!;
-              return GridView.builder(
-                controller: _scrollController,
-                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 5,
-                  crossAxisSpacing: 1.25,
-                  mainAxisSpacing: 1.25,
+                    List<Medium?> mediaList = snapshot.data!;
+                    return GridView.builder(
+                      controller: _scrollController,
+                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 5,
+                        crossAxisSpacing: 1.25,
+                        mainAxisSpacing: 1.25,
+                      ),
+                      itemCount: mediaList.length,
+                      itemBuilder: (context, index) {
+                        final medium = mediaList[index];
+                        return GestureDetector(
+                          key: ValueKey(medium?.id ?? index),
+                          onTap: () => _selectionMode && medium != null
+                              ? _toggleSelection(medium)
+                              : null,
+                          onLongPress: () =>
+                              medium != null ? _onLongPress(medium) : null,
+                          child: Stack(
+                            fit: StackFit.expand,
+                            children: [
+                              medium != null &&
+                                      _thumbnails.containsKey(medium.id)
+                                  ? Image.memory(
+                                      _thumbnails[medium.id]!,
+                                      fit: BoxFit.cover,
+                                    )
+                                  : Container(
+                                      color: Colors.grey[700],
+                                      child: Shimmer.fromColors(
+                                        baseColor: Colors.grey[700]!,
+                                        highlightColor: Colors.grey[500]!,
+                                        period: Duration(milliseconds: 150),
+                                        child: Container(),
+                                      ),
+                                    ),
+                              if (medium != null &&
+                                  _selectedMedia.contains(medium))
+                                Container(
+                                  color: Colors.black54,
+                                  child: Icon(Icons.check, color: Colors.white),
+                                ),
+                              if (medium != null &&
+                                  medium.filename != null &&
+                                  _uploadedPhotos.contains(medium.filename))
+                                Positioned(
+                                  bottom: 8,
+                                  right: 8,
+                                  child: Icon(
+                                    Icons.cloud_done,
+                                    color: Colors.green,
+                                  ),
+                                ),
+                            ],
+                          ),
+                        );
+                      },
+                    );
+                  },
                 ),
-                itemCount: mediaList.length,
-                itemBuilder: (context, index) {
-                  final medium = mediaList[index];
-                  return GestureDetector(
-                    key: ValueKey(medium?.id ?? index),
-                    onTap: () =>
-                    _selectionMode && medium != null
-                        ? _toggleSelection(medium)
-                        : null,
-                    onLongPress: () =>
-                    medium != null ? _onLongPress(medium) : null,
-                    child: Stack(
-                      fit: StackFit.expand,
-                      children: [
-                        medium != null &&
-                            _thumbnails.containsKey(medium.id)
-                            ? Image.memory(
-                          _thumbnails[medium.id]!,
-                          fit: BoxFit.cover,
-                        )
-                            : Container(
-                          color: Colors.grey[700],
-                          child: Shimmer.fromColors(
-                            baseColor: Colors.grey[700]!,
-                            highlightColor: Colors.grey[500]!,
-                            period: Duration(milliseconds: 150),
-                            child: Container(),
-                          ),
-                        ),
-                        if (medium != null &&
-                            _selectedMedia.contains(medium))
-                          Container(
-                            color: Colors.black54,
-                            child: Icon(Icons.check,
-                                color: Colors.white),
-                          ),
-                        if (medium != null &&
-                            medium.filename != null &&
-                            _uploadedPhotos
-                                .contains(medium.filename))
-                          Positioned(
-                            bottom: 8,
-                            right: 8,
-                            child: Icon(
-                              Icons.cloud_done,
-                              color: Colors.green,
-                            ),
-                          ),
-                      ],
-                    ),
-                  );
-                },
-              );
-            },
-          ),
           if (_isUploading)
             Center(
               child: Container(
