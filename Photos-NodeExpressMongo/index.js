@@ -27,7 +27,6 @@ app.get("/test", (req, res) => {
 // Set up multer for file uploads
 const upload = multer({ dest: "uploads/" });
 
-// Define photo upload route
 app.post("/upload", authenticate, upload.single("photo"), async (req, res) => {
   try {
     if (!req.file) {
@@ -38,17 +37,19 @@ app.post("/upload", authenticate, upload.single("photo"), async (req, res) => {
     const originalName = req.file.originalname;
     const filePath = req.file.path;
 
-    // Get the current date
-    const uploadDate = new Date();
+    let uploadDir;
 
-    // Create folder structure based on year and month
-    const year = uploadDate.getFullYear();
-    const month = ("0" + (uploadDate.getMonth() + 1)).slice(-2); // Zero padding for month
-    const uploadDir = path.join(
-      "D:\\Photos",
-      year.toString(),
-      month.toString()
-    );
+    // Check if custom folder name is provided
+    if (req.body.folderName) {
+      // Use the custom folder name
+      uploadDir = path.join("D:\\Photos", req.body.folderName);
+    } else {
+      // Use the original year/month structure
+      const uploadDate = new Date();
+      const year = uploadDate.getFullYear();
+      const month = ("0" + (uploadDate.getMonth() + 1)).slice(-2);
+      uploadDir = path.join("D:\\Photos", year.toString(), month.toString());
+    }
 
     // Create the directory and any necessary parent directories if they don't exist
     fs.mkdirSync(uploadDir, { recursive: true });
@@ -65,7 +66,6 @@ app.post("/upload", authenticate, upload.single("photo"), async (req, res) => {
   }
 });
 
-// Define photo upload route for multiple photos
 app.post(
   "/upload-multiple",
   authenticate,
@@ -76,17 +76,19 @@ app.post(
         return res.status(400).send("No files uploaded.");
       }
 
-      // Get the current date
-      const uploadDate = new Date();
+      let uploadDir;
 
-      // Create folder structure based on year and month
-      const year = uploadDate.getFullYear();
-      const month = ("0" + (uploadDate.getMonth() + 1)).slice(-2); // Zero padding for month
-      const uploadDir = path.join(
-        "D:\\Photos",
-        year.toString(),
-        month.toString()
-      );
+      // Check if custom folder name is provided
+      if (req.body.folderName) {
+        // Use the custom folder name
+        uploadDir = path.join("D:\\Photos", req.body.folderName);
+      } else {
+        // Use the original year/month structure
+        const uploadDate = new Date();
+        const year = uploadDate.getFullYear();
+        const month = ("0" + (uploadDate.getMonth() + 1)).slice(-2);
+        uploadDir = path.join("D:\\Photos", year.toString(), month.toString());
+      }
 
       // Create the directory and any necessary parent directories if they don't exist
       fs.mkdirSync(uploadDir, { recursive: true });
